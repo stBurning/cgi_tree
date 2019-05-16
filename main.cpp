@@ -5,64 +5,15 @@
 #include <windows.h>
 #include "list/list.h"
 #include "cgi/cgi.h"
+#include "queue/queue.h"
 #include "tree/tree.h"
 
-
 using namespace std;
-//Очередь для обхода дерева в ширину
-struct elem{
-    elem* next = nullptr;
-    node* uzel;
-};
-elem* add(elem*& q, elem* qlast, node* uzel){
-    elem* new_el = new elem;
-    new_el->uzel = uzel;
-    if (!q) {
-        q = new_el;
-        return q;
-    } else {
-        if (qlast) qlast->next = new_el;
-        return new_el;
-    }
-}
-void create_queue(elem*& q, node* tree){
-    if (!tree) return;
-    add(q, nullptr, tree);
-    int cnt = (1 << tree->height) - 1;
-    elem* curr = q;
-    elem* last = q;
-    int curr_cnt = 1;
-    while (curr_cnt<cnt){
-        last = add(
-                q,
-                last,
-                (curr->uzel)?curr->uzel->left:nullptr
-        );
-        last = add(
-                q,
-                last,
-                (curr->uzel)?curr->uzel->right:nullptr
-        );
-        curr = curr->next;
-        curr_cnt+=2;
-    }
-}
-void delete_queue(elem*& q){
-    auto* c = q;
-    while (c){
-        elem* old = c;
-        c = c->next;
-        delete old;
-    }
-    q = nullptr;
-}
-//
 
 struct group{
-    char* group_id;
+    char* group_id = new char[8];
     list<student*>* lst = new list<student*>;
 };
-
 void show_form(){
     cout<<"<form action='tree.cgi' method='post'>\n"
           "<select name=\"sort\">\n"
@@ -72,16 +23,18 @@ void show_form(){
           "<input name=\"btn\" class=\"submitbtn\" type=\"submit\" title=\"Отправить\">\n"
           "</form>\n"<<endl;
 }
+void show_error(const char* error){
+    cout<<"<h4 style=\"text-align: center\">"<<error<<"</h4>"<<endl;
+}
 void add_to_groups(list<group>* groups, student* curr_stud){
-    /**Добавление студента в список его группы
-     * - если такой группы нет, создается новая**/
+    /**Добавление студента в список его группы**/
     for(int i = 0; i < groups->get_size(); i++){
         group g = groups->get(i);
         if(!strcmp(curr_stud->group, g.group_id)){
             g.lst->append(curr_stud);
             return;
         }
-    }//Если ни одна группа не подошла, создаем новую и добавляем в список групп
+    }/**- если такой группы нет, создается новая**/
     group new_group;
     new_group.group_id = curr_stud->group;
     new_group.lst->append(curr_stud);
@@ -94,7 +47,7 @@ void read_file(list<group>*& groups){
     ifstream file("data/data");
     if(file.is_open()){
         while (!file.eof()){
-            student* curr_stud = new student;
+            auto* curr_stud = new student;
             file >> curr_stud->surname;
             file >> curr_stud->name;
             file >> curr_stud->group;
@@ -102,12 +55,11 @@ void read_file(list<group>*& groups){
             add_to_groups(groups, curr_stud);
         }
     } else{
-        throw "Не удалось считать файл";
+        show_error("Error! Data doesn't found ");
     }
 }
 void build_trees(list<node*>*& trees, list<group>* groups, compare_type ctype){
     /**По спискам групп строим деревья**/
-    //TODO Добавить возможность выбора параметра сортировки
     for(int i = 0; i < groups->get_size();i++){
         group g = groups->get(i);
         node* tree = nullptr;
@@ -158,7 +110,6 @@ void show_tree(node* tree){
     }
     delete_queue(qfirst);
 }
-
 void show_content(){
     char* data;
     get_form_data(data);//Получаем данные формы
@@ -167,8 +118,8 @@ void show_content(){
     if(data){
         list<group>* groups;
         if(!strcmp(sort,"По фамилии")){
-            list<group>* groups = new list<group>;
-            list<node*>* trees = new list<node*>;
+            groups = new list<group>;
+            auto* trees = new list<node*>;
             read_file(groups);
             build_trees(trees,groups, SURNAME);
             for(int i = 0; i < trees->get_size(); i++){
@@ -179,9 +130,10 @@ void show_content(){
                 cout << "</table>";
                 cout<<""<<endl;
             }
+            groups->clear();
         }else if(!strcmp(sort,"По среднему баллу")){
-            list<group>* groups = new list<group>;
-            list<node*>* trees = new list<node*>;
+            groups = new list<group>;
+            auto* trees = new list<node*>;
             read_file(groups);
             build_trees(trees,groups, VALUE);
             for(int i = 0; i < trees->get_size(); i++){
@@ -192,16 +144,13 @@ void show_content(){
                 cout << "</table>";
                 cout<<""<<endl;
             }
-        } else{
-            //TODO Add exception
+            groups->clear();
         }
-        groups->clear();
+
         delete data;
     }
     delete sort;
 }
-
-
 int main() {
 
     cout << "Content-type: text/html; charset=utf-8\n\n";
@@ -212,9 +161,7 @@ int main() {
             f.getline(buf, 65536);
             if (strcmp(buf, "<!--main_content-->") == 0) {
                 show_form();
-                if(!is_get()){
-                    show_content();
-                }
+                if(!is_get()) show_content();
             } else cout << buf << endl;
         }
         delete[] buf;

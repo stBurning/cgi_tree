@@ -14,5 +14,5 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
 
     )
 else()
-    add_executable(cgi_tree main.cpp cgi/cgi.cpp cgi/cgi.h list/list.h tree/tree.h)
+    add_executable(cgi_tree main.cpp cgi/cgi.cpp cgi/cgi.h list/list.h tree/tree.h queue/queue.h)
 endif()

@@ -39,8 +39,6 @@ int compare_int(student* const x, student* const y){
 
 using namespace std;
 
-
-
 struct node{
     student* val;
     int height = 1;
