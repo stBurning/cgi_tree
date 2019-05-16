@@ -20,6 +20,7 @@ void show_form(){
           "  <option>По фамилии</option>\n"
           "  <option>По среднему баллу</option>\n"
           "</select>"
+          "<input name=\"min_value\" type='text'>"
           "<input name=\"btn\" class=\"submitbtn\" type=\"submit\" title=\"Отправить\">\n"
           "</form>\n"<<endl;
 }
@@ -110,6 +111,23 @@ void show_tree(node* tree){
     }
     delete_queue(qfirst);
 }
+void show_list(char* data, list<group>* groups){
+    char* src = nullptr;
+    get_user_value(src, data, "min_value");
+    float min_mark = atof(src);
+    if(min_mark){
+        cout<<"<ul>"<<endl;
+        for(int i = 0; i < groups->get_size(); i++){
+            group g = groups->get(i);
+            for(int j = 0; j < g.lst->get_size(); j++){
+                student* s = g.lst->get(j);
+                if(s->mark >= min_mark)
+                    cout<<"<li>"<<s->surname<<" "<<s->name<<" "<<s->group<<" "<<s->mark<<endl;
+            }
+        }
+        cout<<"</ul>"<<endl;
+    }
+}
 void show_content(){
     char* data;
     get_form_data(data);//Получаем данные формы
@@ -130,6 +148,7 @@ void show_content(){
                 cout << "</table>";
                 cout<<""<<endl;
             }
+            show_list(data, groups);
             groups->clear();
         }else if(!strcmp(sort,"По среднему баллу")){
             groups = new list<group>;
@@ -144,6 +163,7 @@ void show_content(){
                 cout << "</table>";
                 cout<<""<<endl;
             }
+            show_list(data, groups);
             groups->clear();
         }
 
