@@ -19,8 +19,8 @@ void show_form(){
           "<select name=\"sort\">\n"
           "  <option>По фамилии</option>\n"
           "  <option>По среднему баллу</option>\n"
-          "</select>"
-          "<input name=\"min_value\" type='text'>"
+          "</select>\n"
+          "<input name=\"min_value\" type='text'>\n"
           "<input name=\"btn\" class=\"submitbtn\" type=\"submit\" title=\"Отправить\">\n"
           "</form>\n"<<endl;
 }
@@ -116,16 +116,18 @@ void show_list(char* data, list<group>* groups){
     get_user_value(src, data, "min_value");
     float min_mark = atof(src);
     if(min_mark){
+        cout<<"<div class='list'>"<<endl;
         cout<<"<ul>"<<endl;
         for(int i = 0; i < groups->get_size(); i++){
             group g = groups->get(i);
             for(int j = 0; j < g.lst->get_size(); j++){
                 student* s = g.lst->get(j);
                 if(s->mark >= min_mark)
-                    cout<<"<li>"<<s->surname<<" "<<s->name<<" "<<s->group<<" "<<s->mark<<endl;
+                    cout<<"<li>"<<s->surname<<" "<<s->name<<" "<<s->group<<" "<<s->mark<<"</li>"<<endl;
             }
         }
         cout<<"</ul>"<<endl;
+        cout<<"</div>"<<endl;
     }
 }
 void show_content(){
@@ -166,7 +168,6 @@ void show_content(){
             show_list(data, groups);
             groups->clear();
         }
-
         delete data;
     }
     delete sort;
@@ -187,6 +188,5 @@ int main() {
         delete[] buf;
         f.close();
     }
-
     return 0;
 }
